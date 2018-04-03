@@ -1,23 +1,54 @@
 import discord
+from discord import Server
 from discord.ext import commands
 from discord.ext.commands import Bot
 import asyncio
 import requests
 import sys
+import json
 from pathlib import Path
+from anime import anime
+import re
 
-anilist = 'https://graphql.anilist.co'
-key = 'NDIyNzI1NTU0OTU3OTc1NTUy.DZHYpw.RJMw32fyUufJe7pTlQV_JTkHg0k'
+#read key from file
+key = json.load(open('saikey.txt'))
 
+osuapi = "https://osu.ppy.sh/api/get_beatmaps?k=" + str(key['osu'])
+
+#declare command prefix
 bot = commands.Bot(command_prefix='$$')
 
+#remove default help command
+bot.remove_command('help')
+
+#when bot initialised, change game and print bot details to screen
 @bot.event
 async def on_ready():
     await bot.change_presence(game = discord.Game(name='with catnip'))
+    global me
+    me = await bot.get_user_info('155421790963892224')
     print('Logged in as')
     print(bot.user.name)
     print(bot.user.id)
     print('-------')
+
+#
+# --COMMANDS--
+#If message starts with command prefix, read command word and reply
+#
+
+@bot.command(pass_context = True)
+async def clear(ctx):
+    if ctx.message.author == me: await bot.purge_from(Server.get_channel(ctx.message.server,'431806042377289739'))
+    else: await bot.say("You are not permitted to do that")
+
+@bot.command(pass_context = True)
+async def help(ctx):
+    await bot.say("```Commands:\n\t$$a <anime name> - Get information on anime\n\t$$boost - boost\n\t$$BOOST - BOOST\n\t$$help - How did you get here?\n\t$$trap - <:jack:403983194996736031>```")
+
+@bot.command(pass_context = True)
+async def boost(ctx):
+    await bot.say("https://b.catgirlsare.sexy/QwAa.jpg")
 
 @bot.command(pass_context = True)
 async def BOOST(ctx):
@@ -27,68 +58,51 @@ async def BOOST(ctx):
 async def trap(cxt):
     await bot.say("<:jack:403983194996736031>")
 
-@bot.event
-async def on_message(message):
-    if message.author.id != bot.user.id:
-        if 'osu.ppy.sh' in message.content:
-                await bot.send_message(message.channel, 'Work in progress')
-    await bot.process_commands(message)
-
-@bot.command(pass_context = True)
-async def boost(ctx):
-    await bot.say("https://b.catgirlsare.sexy/QwAa.jpg")
-
+#Split message by new line, pop first element in list, split again by spaces.
+#Delete command from message and join elements with a space between each.
+#Call anime function and send info to discord.
 @bot.command(pass_context = True)
 async def a(ctx):
     split_message = ctx.message.content.split('\n').pop(0).split(' ')
-    #split_message = ctx.message.content.split(' ')
     del split_message[0]
     split_message = ' '.join(split_message)
-    file = Path("anime" + split_message + ".txt")
-    query = '''
-    query($title: String){
-        Media (search: $title, type : ANIME, sort : SEARCH_MATCH){
-            id
-            title{
-                romaji
-                english
-                native
-            }
-            description
-            averageScore
-            coverImage{
-                medium
-            }
-        }
-    }
-    '''
+    #if fail DM error to me
+    try:
+        embed = anime(split_message)
+        await bot.say(embed=embed)
+    except Exception as err:
+        await bot.send_message(me,"Uuwahh! Senpai! Something broke!\n ``` " + str(err) + " ```")
 
-    variables = {
-        'title' : split_message
-    }
+#
+# --COMMANDS END--
+#
 
-    r = requests.post(anilist, json={'query':query, 'variables': variables})
-    headers = r.headers
-    response = r.json()
+#@bot.event
+#async def on_message(message):
+#if message.author.id != bot.user.id:
+#        if 'osu.ppy.sh/beatmapsets' in message.content:
+#            osumsg = [e for e in re.split('[/#]',message.content.split('beatmapsets/').pop(1)) if e not in ('osu', 'taiko','fruits','mania')]
+#            print(osumsg)
+#            file = Path("osu\\beatmapset_" + osumsg[0] + ".txt")
+#            if file.is_file() is False:
+#                r = requests.post(osuapi + "&s=" + osumsg[0])
+#                with open(file,'w+') as newfile:
+#                    json.dump(r.json(),newfile,indent=4)
+#                    newfile.close()
+#
+#            osudata = json.load(open(file))
+#            try:
+#                for x in osudata:
+#                    if x['beatmap_id'] == osumsg[1]:
+#                        embed = discord.Embed(title=x['title'])
+#                        embed.set_thumbnail(url="https://b.ppy.sh/thumb/" + x['beatmapset_id'] + ".jpg")
+#                        embed.add_field(name="SR")
+#                        #print("mode: " + x['mode'])
+#                        #break
+#            except:
+#                print('no beatmap id')
+#            #print(json.dumps(r.json(),indent=4))
+#        #await bot.send_message(message.channel, 'Work in progress')
+#    await bot.process_commands(message)
 
-    print(headers)
-
-    english = response['data']['Media']['title']['english']
-    native = response['data']['Media']['title']['native']
-
-    if not response['data']['Media']['title']['english'] : english = '-'
-
-    if not response['data']['Media']['title']['native'] : native = '-'
-
-    desc = response['data']['Media']['description'].replace('<br>','')
-
-    embed=discord.Embed(title=response['data']['Media']['title']['romaji'], description=desc, color=0x02A9FF)
-    embed.set_thumbnail(url=response['data']['Media']['coverImage']['medium'])
-    embed.add_field(name="Romaji", value=response['data']['Media']['title']['romaji'], inline=True)
-    embed.add_field(name="English", value=english, inline=True)
-    embed.add_field(name="Native", value=native, inline=True)
-    embed.add_field(name="Score", value=response['data']['Media']['averageScore'],inline=True)
-    embed.add_field(name="Link", value = "http://anilist.co/anime/" + str(response['data']['Media']['id']),inline=True)
-    await bot.say(embed=embed)
-
-bot.run(key)
+bot.run(str(key["discord"]))
