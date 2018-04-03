@@ -62,10 +62,11 @@ async def a(ctx):
     split_message = ' '.join(split_message)
     #if fail DM error to me
     try:
+        raise NameError('error')
         embed = anime(split_message)
         await bot.say(embed=embed)
     except Exception as err:
-        await bot.send_message(me,err)
+        await bot.send_message(me,"Uuwahh! Senpai! Something broke!\n ``` \n" + str(err) + "\n ```")
 
 #
 # --COMMANDS END--
