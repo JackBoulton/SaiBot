@@ -20,13 +20,13 @@ def osu(osumsg):
     embed.add_field(name="Duration",value = str(datetime.timedelta(seconds=int(osudata[0]['total_length']))),inline=False)
     for x in osudata:
         try:
-            if x['beatmap_id'] == osumsg[1] and osumsg[1] != '':
+            if osumsg[1] == '':
+                raise Exception
+            elif x['beatmap_id'] == osumsg[1]:
                 embed.add_field(name="Circle Size",value = x['diff_size'],inline=True)
                 embed.add_field(name="OD", value = x['diff_overall'],inline=True)
                 embed.add_field(name="AR",value = x['diff_approach'], inline=True)
                 embed.add_field(name="SR", value = round(float(x['difficultyrating']),2),inline=True)
-            else:
-                raise Exception
         except:
             embed.add_field(name="Mode - Star - Diff", value = modes[int(x['mode'])] + " - " + str(round(float(x['difficultyrating']),2)) + " - " + x['version'],inline = False)
     embed.add_field(name="Audio Clip", value ="https://b.ppy.sh/preview/" + osudata[0]['beatmapset_id'] + ".mp3",inline=False)
