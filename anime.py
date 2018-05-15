@@ -7,7 +7,7 @@ anilist = 'https://graphql.anilist.co'
 
 
 def anime(split_message):
-    file = Path("anime\\anime_" + split_message + ".txt")
+    file = Path('anime/anime_' + split_message + ".txt")
     if file.is_file() is False:
         #structure api query
         query = '''
@@ -34,11 +34,11 @@ def anime(split_message):
         #send request to api. Store headers and response
         r = requests.post(anilist, json={'query':query, 'variables': variables})
         headers = r.headers
-        with open(file,'w+') as newfile:
+        with file.open('w+') as newfile:
             json.dump(r.json(),newfile,indent=4)
             newfile.close()
 
-    anime = json.load(open(file))
+    anime = json.load(file.open())
     #store english and native names. Check if values are empty. If values are
     #empty, replace with '-'
     english = anime['data']['Media']['title']['english']

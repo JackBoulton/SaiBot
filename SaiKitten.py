@@ -6,14 +6,18 @@ import asyncio
 import requests
 import sys
 import json
+import datetime
 from pathlib import Path
 from anime import anime
+from osu import osu
 import re
 
 #read key from file
 key = json.load(open('key.txt'))
 
 osuapi = "https://osu.ppy.sh/api/get_beatmaps?k=" + str(key['osu'])
+
+modes = ['osu','taiko','fruits','mania']
 
 #declare command prefix
 bot = commands.Bot(command_prefix='$$')
@@ -81,28 +85,12 @@ async def a(ctx):
 async def on_message(message):
     if message.author.id != bot.user.id:
         if 'osu.ppy.sh/beatmapsets' in message.content:
-            osumsg = [e for e in re.split('[/#]',message.content.split('beatmapsets/').pop(1)) if e not in ('osu', 'taiko','fruits','mania')]
-            print(osumsg)
-            file = Path("osu\\beatmapset_" + osumsg[0] + ".txt")
-            if file.is_file() is False:
-                r = requests.post(osuapi + "&s=" + osumsg[0])
-                with open(file,'w+') as newfile:
-                    json.dump(r.json(),newfile,indent=4)
-                    newfile.close()
-
-            osudata = json.load(open(file))
+            osumsg = [e for e in re.split('[/#]',message.content.split('beatmapsets/').pop(1)) if e not in modes]
             try:
-                for x in osudata:
-                    if x['beatmap_id'] == osumsg[1]:
-                        embed = discord.Embed(title=x['title'])
-                        embed.set_thumbnail(url="https://b.ppy.sh/thumb/" + x['beatmapset_id'] + ".jpg")
-                        embed.add_field(name="SR")
-                        #print("mode: " + x['mode'])
-                        #break
-            except:
-                print('no beatmap id')
-            #print(json.dumps(r.json(),indent=4))
-        #await bot.send_message(message.channel, 'Work in progress')
+                embed = osu(osumsg)
+                await bot.send_message(message.channel,embed=embed)
+            except Exception as err:
+                await bot.send_message(me,"Uuwahh! Senpai! Something broke!\n ``` " + str(err) + " ```")
     await bot.process_commands(message)
 
 bot.run(str(key["discord"]))

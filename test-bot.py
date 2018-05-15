@@ -25,7 +25,7 @@ async def on_ready():
 async def test(ctx):
     await bot.send_message(chan, '$$a flcl')
     await bot.send_message(chan, 'https://osu.ppy.sh/beatmapsets/717528#osu/1515830')
-    await bot.send_message(chan, 'https://osu.ppy.sh/beatmapsets/717528')
+    await bot.send_message(chan, 'https://osu.ppy.sh/beatmapsets/591442')
 
 
 
