@@ -6,15 +6,16 @@ import datetime
 
 modes = ['osu','taiko','fruits','mania']
 
-def osu(osumsg):
+def osu(osumsg,key):
+    osuapi = "https://osu.ppy.sh/api/get_beatmaps?k=" + str(key)
     file = Path("osu\\beatmapset_" + osumsg[0] + ".txt")
     if file.is_file() is False:
         r = requests.post(osuapi + "&s=" + osumsg[0])
-        with open(file,'w+') as newfile:
+        with file.open('w+') as newfile:
             json.dump(r.json(),newfile,indent=4)
             newfile.close()
 
-    osudata = json.load(open(file))
+    osudata = json.load(file.open())
     embed = discord.Embed(title=osudata[0]['title'])
     embed.set_thumbnail(url="https://b.ppy.sh/thumb/" + osudata[0]['beatmapset_id'] + ".jpg")
     embed.add_field(name="Duration",value = str(datetime.timedelta(seconds=int(osudata[0]['total_length']))),inline=False)

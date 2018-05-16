@@ -87,7 +87,7 @@ async def on_message(message):
         if 'osu.ppy.sh/beatmapsets' in message.content:
             osumsg = [e for e in re.split('[/#]',message.content.split('beatmapsets/').pop(1)) if e not in modes]
             try:
-                embed = osu(osumsg)
+                embed = osu(osumsg,key['osu'])
                 await bot.send_message(message.channel,embed=embed)
             except Exception as err:
                 await bot.send_message(me,"Uuwahh! Senpai! Something broke!\n ``` " + str(err) + " ```")
