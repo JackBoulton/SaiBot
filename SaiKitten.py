@@ -11,11 +11,13 @@ from pathlib import Path
 from anime import anime
 from osu import osu
 import re
+from voca import voca
 
 #read key from file
 key = json.load(open('key.txt'))
 
 osuapi = "https://osu.ppy.sh/api/get_beatmaps?k=" + str(key['osu'])
+vocaapi = "https://vocadb.net/api"
 
 modes = ['osu','taiko','fruits','mania']
 
@@ -48,7 +50,7 @@ async def clear(ctx):
 
 @bot.command(pass_context = True)
 async def help(ctx):
-    await bot.say("```Commands:\n\t$$a <anime name> - Get information on anime\n\t$$boost - boost\n\t$$BOOST - BOOST\n\t$$help - How did you get here?\n\t$$trap - <:jack:403983194996736031>```")
+    await bot.say("```Commands:\n\t$$a <anime name> - Get information on anime\n\t$$boost - boost\n\t$$BOOST - BOOST\n\t$$help - How did you get here?\n\t$$v <song> || <artist> - Get info on vocaloid songs\n\n\tYou can also search for only a song with $$v s || <songname> and only an artist with $$v a || <artistname>\n\n\tosu! links - Paste an osu beatmap and get info on the map/s ```\nSend Sai a DM if anything breaks or if you have a good idea for a new feature.\nYou can also DM me commands if you don't want people to see your weeb stuff.")
 
 @bot.command(pass_context = True)
 async def boost(ctx):
@@ -57,10 +59,6 @@ async def boost(ctx):
 @bot.command(pass_context = True)
 async def BOOST(ctx):
     await bot.say("https://i.imgur.com/Yvf3htW.gif")
-
-@bot.command(pass_context = True)
-async def trap(cxt):
-    await bot.say("<:jack:403983194996736031>")
 
 #Split message by new line, pop first element in list, split again by spaces.
 #Delete command from message and join elements with a space between each.
@@ -77,10 +75,22 @@ async def a(ctx):
     except Exception as err:
         await bot.send_message(me,"Uuwahh! Senpai! Something broke!\n ``` " + str(err) + " ```")
 
+@bot.command(pass_context = True)
+async def v(ctx):
+    try:
+        vocamsg = ctx.message.content.lower().lstrip('$$v ').split(' || ')
+        embed = voca(vocamsg)
+        if str(embed) == "IndexError":
+            await bot.say("Sorry, <@" + ctx.message.author.id + ">, I didn't catch that. Make sure the request format is <song> || <artist> or <s/a> || <song/artist>.")
+        elif str(embed) == "NoValue":
+            await bot.say("Sorry, <@" + ctx.message.author.id + ">, I couldn't find anything. Please check your spelling or check $$help.")
+        else:
+            await bot.say(embed = embed)
+    except Exception as err:
+        await bot.send_message(me,"Uuwahh! Senpai! Something broke!\n ``` " + str(err) + " ```")
 #
 # --COMMANDS END--
 #
-
 @bot.event
 async def on_message(message):
     if message.author.id != bot.user.id:
