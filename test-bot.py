@@ -7,6 +7,8 @@ import asyncio
 
 bot = commands.Bot(command_prefix='$')
 key = open('testkey.txt').readline().rstrip('\n')
+messages = ["$$a flcl","$$a ","$$a mha","https://osu.ppy.sh/beatmapsets/717528#osu/1515830","https://osu.ppy.sh/beatmapsets/591442","https://osu.ppy.sh/beatmapsets/","$$v remo con || wan opo","$$v a || yunosuke","$$v s || lazy","$$v a || sdnjsb", "$$v s || gjdgjksd","$$v s || catlife","$$v undead enemy","$$v a || ","$$v s || "]
+loopvalue = 0
 
 @bot.event
 async def on_ready():
@@ -20,21 +22,15 @@ async def on_ready():
     global chan
     chan = bot.get_channel('431806042377289739')
 
-
-@bot.command(pass_context = True)
-async def test(ctx):
-    await bot.send_message(chan, '$$a flcl')
-    await bot.send_message(chan, 'https://osu.ppy.sh/beatmapsets/717528#osu/1515830')
-    await bot.send_message(chan, 'https://osu.ppy.sh/beatmapsets/591442')
-    await bot.send_message(chan, '$$v remo con || wan opo')
-    await bot.send_message(chan, '$$v a || yunosuke')
-    await bot.send_message(chan, '$$v s || lazy')
-    await bot.send_message(chan, '$$v a || hgsbgshjgj')
-    await bot.send_message(chan, '$$v s || jkgbksdjgbs')
-    await bot.send_message(chan, '$$v dfkjbfd || nfsjbgfg')
-    await bot.send_message(chan, '$$v cat life || jhbsdgsd')
-    await bot.send_message(chan, '$$v undead enemy')
-    await bot.send_message(chan, '$$v a ||')
+@bot.event
+async def on_message(message):
+    global loopvalue
+    if message.author.id != bot.user.id:
+        if message.content == "reset":loopvalue=0
+        else:
+            await bot.send_message(chan, messages[loopvalue])
+            loopvalue += 1
+    await bot.process_commands(message)
 
 
 

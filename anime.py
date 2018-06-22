@@ -34,29 +34,32 @@ def anime(split_message):
         }
         #send request to api. Store headers in headers and response in r
         r = requests.post(anilist, json={'query':query, 'variables': variables})
-        headers = r.headers
+        status = r.status_code
+        if status == 404: return Exception("NoValue")
         #create new file and dump response into file
-        with file.open('w+') as newfile:
-            json.dump(r.json(),newfile,indent=4)
-            newfile.close()
+        else:
+            with file.open('w+') as newfile:
+                json.dump(r.json(),newfile,indent=4)
+                newfile.close()
     #open file
-    anime = json.load(file.open())
-    #store english and native names. Check if values are empty. If values are
-    #empty, replace with '-'
-    english = anime['data']['Media']['title']['english']
-    native = anime['data']['Media']['title']['native']
-    if not anime['data']['Media']['title']['english'] : english = '-'
-    if not anime['data']['Media']['title']['native'] : native = '-'
+    if file.is_file() is True:
+        anime = json.load(file.open())
+        #store english and native names. Check if values are empty. If values are
+        #empty, replace with '-'
+        english = anime['data']['Media']['title']['english']
+        native = anime['data']['Media']['title']['native']
+        if not anime['data']['Media']['title']['english'] : english = '-'
+        if not anime['data']['Media']['title']['native'] : native = '-'
 
-    #remove <br> from desc
-    desc = anime['data']['Media']['description'].replace('<br>','')
+        #remove <br> from desc
+        desc = anime['data']['Media']['description'].replace('<br>','')
 
-    #structure and return embed response.
-    embed=discord.Embed(title=anime['data']['Media']['title']['romaji'], description=desc, color=0x02A9FF)
-    embed.set_thumbnail(url=anime['data']['Media']['coverImage']['medium'])
-    embed.add_field(name="Romaji", value=anime['data']['Media']['title']['romaji'], inline=True)
-    embed.add_field(name="English", value=english, inline=True)
-    embed.add_field(name="Native", value=native, inline=True)
-    embed.add_field(name="Score", value=anime['data']['Media']['averageScore'],inline=True)
-    embed.add_field(name="Link", value = "http://anilist.co/anime/" + str(anime['data']['Media']['id']),inline=True)
-    return embed
+        #structure and return embed response.
+        embed=discord.Embed(title=anime['data']['Media']['title']['romaji'], description=desc, color=0x02A9FF)
+        embed.set_thumbnail(url=anime['data']['Media']['coverImage']['medium'])
+        embed.add_field(name="Romaji", value=anime['data']['Media']['title']['romaji'], inline=True)
+        embed.add_field(name="English", value=english, inline=True)
+        embed.add_field(name="Native", value=native, inline=True)
+        embed.add_field(name="Score", value=anime['data']['Media']['averageScore'],inline=True)
+        embed.add_field(name="Link", value = "http://anilist.co/anime/" + str(anime['data']['Media']['id']),inline=True)
+        return embed

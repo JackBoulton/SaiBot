@@ -14,7 +14,9 @@ def voca(vocamsg):
         if vocamsg[0] != "a":
             #if request only contains song, request top song matching request
             if vocamsg[0] == "s":
-                r = requests.get(vocaapi + "songs?query=" + vocamsg[1] + "&maxResults=1&sort=RatingScore&nameMatchMode=Auto&fields=Artists,ThumbUrl,PVs,Tags&lang=English").json()['items'][0]
+                r = requests.get(vocaapi + "songs?query=" + vocamsg[1] + "&maxResults=1&sort=RatingScore&nameMatchMode=Auto&fields=Artists,ThumbUrl,PVs,Tags&lang=English").json()['items']
+                if not r: raise Exception("NoValue")
+                else: r = r[0]
             #else user requesting specific song and artist.
             #  request song and artist separately
             else:
@@ -22,7 +24,7 @@ def voca(vocamsg):
                 rs = requests.get(vocaapi + "songs?query=" + vocamsg[0] + "&sort=RatingScore&nameMatchMode=Auto&fields=Artists,ThumbUrl,PVs,Tags&lang=English").json()['items']
                 #if rs is empty return NoValue exception
                 if not rs:
-                    return Exception("NoValue")
+                    raise Exception("NoValue")
                 #request all artists matching user request
                 ra = requests.get(vocaapi + "artists?query=" + vocamsg[1] + "&nameMatchMode=Auto&lang=English&sort=FollowerCount").json()['items']
 
@@ -84,4 +86,5 @@ def voca(vocamsg):
             embed.add_field(name="Type",value = r['artistType'])
             embed.add_field(name="Tags",value=", ".join(tags))
         return embed
-    except IndexError: return Exception("NoValue")
+    except IndexError: return Exception("IndexError")
+    except: return Exception("NoValue")
